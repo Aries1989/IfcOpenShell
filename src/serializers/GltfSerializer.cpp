@@ -165,13 +165,28 @@ void GltfSerializer::write(const IfcGeom::TriangulationElement* o) {
 	node_array_.push_back(json_["nodes"].size());
 
 	const std::vector<double>& m = o->transformation().matrix().data();
-	// nb: note that this contains the Y-UP transform as well.
-	const std::array<double, 16> matrix_flat = {
-		m[0], m[ 2], -m[ 1], 0,
-		m[3], m[ 5], -m[ 4], 0,
-		m[6], m[ 8], -m[ 7], 0,
-		m[9], m[11], -m[10], 1
-	};
+	std::array<double, 16> matrix_flat;
+
+	const bool isyup = settings().get(SerializerSettings::USE_Y_UP);
+	if (isyup)
+	{
+		// nb: note that this contains the Y-UP transform as well.
+		matrix_flat = {
+			m[0], m[2], -m[1], 0,
+			m[3], m[5], -m[4], 0,
+			m[6], m[8], -m[7], 0,
+			m[9], m[11], -m[10], 1
+		};
+	}
+	else
+	{
+		matrix_flat = {
+			m[0], m[1], m[2], 0,
+			m[3], m[4], m[5], 0,
+			m[6], m[7], m[8], 0,
+			m[9], m[10], m[11], 1
+		};
+	}
 	static const std::array<double, 16> identity_matrix = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	
 	json node;
